@@ -83,7 +83,13 @@ export default function Investments() {
     ])
       .then(([configs, incConfigs, invs, rates, ethData]) => {
         if (cancelled) return;
-        setConfig(configs[0]);
+        const nextConfig = configs[0] || {
+          status: 'ACTIVE',
+          default_chain_id: 8453,
+          supported_tokens: 'ETH,USDC',
+          treasury_wallet_address: '',
+        };
+        setConfig(nextConfig);
         setIncentiveConfig(incConfigs[0]);
         setInvestments(invs);
         if (rates[0]) setZarRate(rates[0].rate);

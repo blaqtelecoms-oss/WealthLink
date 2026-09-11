@@ -26,7 +26,7 @@ export default function LunoSection({ user }) {
   const loadData = useCallback(async () => {
     setDataLoading(true);
     try {
-      const res = await base44.functions.invoke('lunoBalances', {});
+      const res = await base44.functions.invoke('lunoBalance', {});
       setBalances(res.data?.balances || []);
       setAddresses(res.data?.addresses || []);
       setTransactions(res.data?.transactions || []);

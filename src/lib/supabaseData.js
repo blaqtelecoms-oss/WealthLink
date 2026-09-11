@@ -51,11 +51,8 @@ const createFallbackFunctionResult = async (name, payload) => {
     completeRegistration: { success: true, payload },
     linkReferral: { success: true, payload },
     notifyPaymentConfirmed: { success: true, payload },
-    lunoBalances: { balances: [] },
-    lunoConnect: { connected: true },
-    lunoSend: { sent: true },
-    createInvestment: { created: true, payload },
-    adminViewMember: { member: payload },
+      lunoBalance: { balances: [], addresses: [], exchange_transactions: [], transactions: [], total: { usd: 0, zar: 0 } },
+      lunoBalances: { balances: [], addresses: [], exchange_transactions: [], transactions: [], total: { usd: 0, zar: 0 } },
   };
 
   return { data: fallbackMap[name] ?? { success: true, payload } };
@@ -165,7 +162,8 @@ export const supabaseData = {
           completeRegistration: { success: true, payload },
           linkReferral: { success: true, payload },
           notifyPaymentConfirmed: { success: true, payload },
-          lunoBalances: { balances: [] },
+          lunoBalance: { balances: [], addresses: [], exchange_transactions: [], transactions: [], total: { usd: 0, zar: 0 } },
+          lunoBalances: { balances: [], addresses: [], exchange_transactions: [], transactions: [], total: { usd: 0, zar: 0 } },
           lunoConnect: { connected: true },
           lunoSend: { sent: true },
           createInvestment: { created: true, payload },

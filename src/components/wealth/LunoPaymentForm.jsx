@@ -54,7 +54,7 @@ export default function LunoPaymentForm({
       const conns = await base44.entities.LunoConnection.filter({ member_id: user?.id });
       setConnection(conns[0] || null);
       if (conns[0]?.status === 'CONNECTED') {
-        const res = await base44.functions.invoke('lunoBalances', {});
+        const res = await base44.functions.invoke('lunoBalance', {});
         if (res?.data?.balances) setBalances(res.data.balances);
       }
       try {
