@@ -1,0 +1,81 @@
+{
+  "name": "LunoTransaction",
+  "type": "object",
+  "properties": {
+    "member_id": {
+      "type": "string"
+    },
+    "asset": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "string"
+    },
+    "recipient_address": {
+      "type": "string"
+    },
+    "transaction_reference": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "CONFIRMED",
+        "FAILED"
+      ],
+      "default": "PENDING"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "confirmed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "member_id",
+    "asset",
+    "amount",
+    "recipient_address",
+    "transaction_reference",
+    "status",
+    "timestamp"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.member_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "$or": [
+        {
+          "data.member_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

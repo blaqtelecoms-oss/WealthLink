@@ -1,0 +1,100 @@
+{
+  "name": "BinanceConnection",
+  "type": "object",
+  "properties": {
+    "member_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "NOT_CONNECTED",
+        "CONNECTED",
+        "CONNECTION_ERROR",
+        "DISCONNECTED"
+      ],
+      "default": "NOT_CONNECTED"
+    },
+    "api_key": {
+      "type": "string"
+    },
+    "api_secret_encrypted": {
+      "type": "string"
+    },
+    "permissions": {
+      "type": "string",
+      "default": "USER_DATA"
+    },
+    "connection_mode": {
+      "type": "string",
+      "default": "READ_ONLY"
+    },
+    "funding_status": {
+      "type": "string",
+      "enum": [
+        "NOT_STARTED",
+        "FUNDING_GUIDE_VIEWED",
+        "FUNDING_STARTED",
+        "FUNDING_CONFIRMED",
+        "INVESTMENT_SUBMITTED"
+      ],
+      "default": "NOT_STARTED"
+    },
+    "connected_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "disconnected_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "error_message": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "member_id",
+    "status",
+    "connection_mode",
+    "funding_status"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.member_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "app_role": "FINANCE_ADMIN"
+          }
+        }
+      ]
+    },
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "$or": [
+        {
+          "data.member_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

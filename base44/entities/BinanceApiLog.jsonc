@@ -1,0 +1,64 @@
+{
+  "name": "BinanceApiLog",
+  "type": "object",
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "endpoint_category": {
+      "type": "string"
+    },
+    "member_id": {
+      "type": "string"
+    },
+    "response_status": {
+      "type": "integer"
+    },
+    "error_code": {
+      "type": "string"
+    },
+    "request_id": {
+      "type": "string"
+    },
+    "processing_time_ms": {
+      "type": "integer"
+    }
+  },
+  "required": [
+    "timestamp",
+    "endpoint_category",
+    "response_status"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "app_role": "COMPLIANCE_OFFICER"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "app_role": "SUPER_ADMIN"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "app_role": "SUPER_ADMIN"
+      }
+    }
+  }
+}

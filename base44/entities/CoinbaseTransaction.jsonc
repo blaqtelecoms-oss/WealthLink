@@ -1,0 +1,98 @@
+{
+  "name": "CoinbaseTransaction",
+  "type": "object",
+  "properties": {
+    "member_id": {
+      "type": "string"
+    },
+    "wallet_address": {
+      "type": "string"
+    },
+    "chain_id": {
+      "type": "integer"
+    },
+    "chain_name": {
+      "type": "string"
+    },
+    "token_symbol": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "string"
+    },
+    "recipient_address": {
+      "type": "string"
+    },
+    "token_contract_address": {
+      "type": "string"
+    },
+    "transaction_hash": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "CONFIRMED",
+        "FAILED"
+      ],
+      "default": "PENDING"
+    },
+    "block_explorer_url": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "confirmed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "member_id",
+    "wallet_address",
+    "chain_id",
+    "token_symbol",
+    "amount",
+    "recipient_address",
+    "transaction_hash",
+    "status",
+    "timestamp"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.member_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "$or": [
+        {
+          "data.member_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "name": "Incentive",
+  "type": "object",
+  "properties": {
+    "incentive_id": {
+      "type": "string"
+    },
+    "member_id": {
+      "type": "string"
+    },
+    "source_member_id": {
+      "type": "string"
+    },
+    "investment_id": {
+      "type": "string"
+    },
+    "base_amount": {
+      "type": "number"
+    },
+    "percentage": {
+      "type": "number"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "incentive_type": {
+      "type": "string",
+      "enum": [
+        "DIRECT",
+        "LEADERSHIP"
+      ]
+    },
+    "level": {
+      "type": "integer"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "UNDER_REVIEW",
+        "APPROVED",
+        "AVAILABLE",
+        "REJECTED",
+        "REVERSED",
+        "PAID"
+      ]
+    },
+    "calculation_note": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "incentive_id",
+    "member_id",
+    "investment_id",
+    "base_amount",
+    "percentage",
+    "amount",
+    "incentive_type",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.member_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

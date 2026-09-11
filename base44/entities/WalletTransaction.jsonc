@@ -1,0 +1,95 @@
+{
+  "name": "WalletTransaction",
+  "type": "object",
+  "properties": {
+    "transaction_id": {
+      "type": "string"
+    },
+    "member_id": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "balance_type": {
+      "type": "string",
+      "enum": [
+        "INVESTMENT",
+        "AVAILABLE_REWARD",
+        "PENDING_REWARD"
+      ]
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "CREDIT",
+        "DEBIT",
+        "HOLD",
+        "RELEASE",
+        "REVERSAL"
+      ]
+    },
+    "description": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "source_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "POSTED",
+        "REVERSED",
+        "FAILED"
+      ]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "transaction_id",
+    "member_id",
+    "amount",
+    "balance_type",
+    "type",
+    "description",
+    "source",
+    "status",
+    "timestamp"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.member_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
