@@ -180,7 +180,7 @@ export const supabaseData = {
       'User', 'Activity', 'AuditLog', 'BankAccount', 'BinanceApiLog', 'BinanceConfig', 'BinanceConnection',
       'CoinbaseConfig', 'CoinbaseTransaction', 'ComplianceFlag', 'ExchangeRate', 'FundingTransaction',
       'Incentive', 'IncentiveConfiguration', 'Investment', 'InvestmentProduct', 'KYCSubmission',
-      'LunoConnection', 'ReferralRelationship', 'WalletTransaction', 'Withdrawal', 'Notification',
+      'LegalDocument', 'LunoConnection', 'ReferralRelationship', 'WalletTransaction', 'Withdrawal', 'Notification',
       'Transaction', 'MemberProfile', 'Reward', 'SystemSetting', 'AppSetting',
     ].map((name) => [name, createEntityAdapter(name)])
   ),
