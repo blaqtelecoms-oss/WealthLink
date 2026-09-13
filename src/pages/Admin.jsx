@@ -1,16 +1,19 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/lib/supabaseData';
 import { useAuth } from '@/lib/AuthContext';
+import { getAdminUserInfo } from '@/lib/adminAuth';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { ArrowRight, Coins, ShieldCheck, Users } from 'lucide-react';
+import { ArrowRight, Coins, ShieldCheck, Users, AlertCircle } from 'lucide-react';
 import PageHeader from '@/components/wealth/PageHeader';
 import BackButton from '@/components/wealth/BackButton';
 import MetricCard from '@/components/wealth/MetricCard';
 import DataTable from '@/components/wealth/DataTable';
 import StatusPill from '@/components/wealth/StatusPill';
+import AdminGuard from '@/components/AdminGuard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 const trend = [
   { d: 'Mon', members: 12, investment: 42000 },
@@ -55,28 +58,54 @@ function ActionCard({ title, description, to, icon: Icon }) {
   );
 }
 
-export default function Admin() {
+function AdminContent() {
   const { user } = useAuth();
   const [data, setData] = useState(null);
   const [config, setConfig] = useState(null);
   const [search, setSearch] = useState('');
   const [message, setMessage] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [adminInfo, setAdminInfo] = useState(null);
+  const [error, setError] = useState(null);
 
-  const load = () =>
-    Promise.all([
-      base44.entities.User.list(),
-      base44.entities.Investment.list(),
-      base44.entities.Incentive.list(),
-      base44.entities.Withdrawal.list(),
-      base44.entities.IncentiveConfiguration.list('-updated_date', 1),
-    ]).then(([members, investments, incentives, withdrawals, configs]) => {
+  const load = async () => {
+    try {
+      setError(null);
+      setIsLoading(true);
+      const results = await Promise.all([
+        base44.entities.User.list(),
+        base44.entities.Investment.list(),
+        base44.entities.Incentive.list(),
+        base44.entities.Withdrawal.list(),
+        base44.entities.IncentiveConfiguration.list('-updated_date', 1),
+      ]);
+
+      const [members, investments, incentives, withdrawals, configs] = results;
       setData({ members, investments, incentives, withdrawals });
       setConfig(configs[0]);
-    });
+    } catch (err) {
+      console.error('Error loading admin data:', err);
+      setError('Failed to load dashboard data. Please try again.');
+      toast.error('Failed to load data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadAdminInfo = async () => {
+    try {
+      const info = await getAdminUserInfo(user?.id);
+      setAdminInfo(info);
+    } catch (err) {
+      console.error('Error loading admin info:', err);
+    }
+  };
 
   useEffect(() => {
     load();
-  }, []);
+    loadAdminInfo();
+  }, [user?.id]);
 
   const filtered = useMemo(() => {
     if (!data?.members) return [];
@@ -101,30 +130,86 @@ export default function Admin() {
 
   async function save(e) {
     e.preventDefault();
-    const response = await base44.functions.invoke('adminControl', {
-      action: 'SAVE_CONFIG',
-      config,
-      reason: 'Administrator configuration update',
-    });
-    setConfig(response.data.result);
-    setMessage('Configuration saved and audit logged.');
+    try {
+      setIsSaving(true);
+      setMessage('');
+      const response = await base44.functions.invoke('adminControl', {
+        action: 'SAVE_CONFIG',
+        config,
+        reason: 'Administrator configuration update',
+      });
+      setConfig(response.data.result);
+      setMessage('✓ Configuration saved and audit logged.');
+      toast.success('Configuration saved successfully');
+    } catch (err) {
+      console.error('Error saving config:', err);
+      setMessage('✗ Failed to save configuration.');
+      toast.error('Failed to save configuration');
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   async function reviewInvestment(id, status) {
-    await base44.functions.invoke('adminControl', {
-      action: 'REVIEW_INVESTMENT',
-      id,
-      status,
-      reason: `Finance review: ${status}`,
-    });
-    setMessage(`Investment moved to ${status}.`);
-    load();
+    try {
+      await base44.functions.invoke('adminControl', {
+        action: 'REVIEW_INVESTMENT',
+        id,
+        status,
+        reason: `Finance review: ${status}`,
+      });
+      setMessage(`✓ Investment moved to ${status}.`);
+      toast.success(`Investment reviewed: ${status}`);
+      load();
+    } catch (err) {
+      console.error('Error reviewing investment:', err);
+      toast.error('Failed to review investment');
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="grid min-h-[60vh] place-items-center">
+        <div className="text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-700 border-t-teal-300 mx-auto mb-3" />
+          <p className="text-sm text-slate-400">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <>
+        <BackButton to="/" />
+        <PageHeader
+          eyebrow="Administrative control centre"
+          title="Error loading dashboard"
+          description="An error occurred while loading admin data."
+        />
+        <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-6">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-white">Failed to load data</h3>
+              <p className="mt-1 text-sm text-slate-400">{error}</p>
+              <Button onClick={load} className="mt-4 bg-[#c5a059] text-[#0a0e14] hover:bg-[#d4af37]">
+                Try again
+              </Button>
+            </div>
+          </div>
+        </div>
+      </>
+    );
   }
 
   if (!data || !config) {
     return (
       <div className="grid min-h-[60vh] place-items-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-700 border-t-teal-300" />
+        <div className="text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-700 border-t-teal-300 mx-auto mb-3" />
+          <p className="text-sm text-slate-400">Loading platform data...</p>
+        </div>
       </div>
     );
   }
@@ -140,7 +225,16 @@ export default function Admin() {
         eyebrow="Administrative control centre"
         title="Platform administration"
         description="Operational metrics, member oversight and controlled incentive rules."
-        action={<StatusPill value={user?.app_role || 'ADMIN'} />}
+        action={
+          <div className="flex items-center gap-2">
+            <StatusPill value={user?.app_role || 'ADMIN'} />
+            {adminInfo?.access_level && (
+              <span className="text-xs text-slate-400 px-2">
+                Access: {adminInfo.access_level}
+              </span>
+            )}
+          </div>
+        }
       />
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
@@ -203,10 +297,14 @@ export default function Admin() {
               </label>
             </div>
 
-            {message && <p className="text-xs text-teal-300">{message}</p>}
+            {message && (
+              <p className={`text-xs ${message.startsWith('✓') ? 'text-teal-300' : 'text-red-300'}`}>
+                {message}
+              </p>
+            )}
 
-            <Button type="submit" className="w-full bg-[#c5a059] text-[#0a0e14] hover:bg-[#d4af37]">
-              Save & audit changes
+            <Button type="submit" disabled={isSaving} className="w-full bg-[#c5a059] text-[#0a0e14] hover:bg-[#d4af37]">
+              {isSaving ? 'Saving...' : 'Save & audit changes'}
             </Button>
           </form>
         </section>
@@ -283,5 +381,13 @@ export default function Admin() {
         </DataTable>
       </section>
     </>
+  );
+}
+
+export default function Admin() {
+  return (
+    <AdminGuard requiredLevel="ADMIN">
+      <AdminContent />
+    </AdminGuard>
   );
 }
