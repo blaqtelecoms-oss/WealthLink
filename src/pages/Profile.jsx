@@ -1,5 +1,5 @@
 import React,{useEffect,useState} from 'react';
-import {base44} from '@/api/base44Client';import {useAuth} from '@/lib/AuthContext';import PageHeader from '@/components/wealth/PageHeader';import StatusPill from '@/components/wealth/StatusPill';import DataTable from '@/components/wealth/DataTable';import {Button} from '@/components/ui/button';import {Input} from '@/components/ui/input';import {Upload,KeyRound,FileCheck2,Trash2,AlertTriangle} from 'lucide-react';
+import {base44} from '@/lib/supabaseData';import {useAuth} from '@/lib/AuthContext';import PageHeader from '@/components/wealth/PageHeader';import StatusPill from '@/components/wealth/StatusPill';import DataTable from '@/components/wealth/DataTable';import {Button} from '@/components/ui/button';import {Input} from '@/components/ui/input';import {Upload,KeyRound,FileCheck2,Trash2,AlertTriangle} from 'lucide-react';
 import {Select,SelectContent,SelectItem,SelectTrigger,SelectValue} from '@/components/ui/select';
 import {AlertDialog,AlertDialogAction,AlertDialogCancel,AlertDialogContent,AlertDialogDescription,AlertDialogFooter,AlertDialogHeader,AlertDialogTitle,AlertDialogTrigger} from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/use-toast';

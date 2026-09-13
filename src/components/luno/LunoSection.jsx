@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { base44 } from '@/api/base44Client';
+import { base44 } from '@/lib/supabaseData';
 import { useToast } from '@/components/ui/use-toast';
 import StatusPill from '@/components/wealth/StatusPill';
 import LunoConnectCard from '@/components/luno/LunoConnectCard';

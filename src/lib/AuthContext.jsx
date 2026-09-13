@@ -1,7 +1,85 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { getAdminAccess } from '@/lib/adminAccess';
 
 const AuthContext = createContext();
+
+const getUserProfile = async (authUser) => {
+  if (!authUser?.id) return {};
+
+  const queries = [
+    () => supabase.from('"User"').select('*').eq('auth_user_id', authUser.id).maybeSingle(),
+    () => supabase.from('"User"').select('*').eq('id', authUser.id).maybeSingle(),
+  ];
+
+  for (const runQuery of queries) {
+    const { data, error } = await runQuery();
+
+    if (error && error.code !== 'PGRST116') {
+      console.warn('Unable to load user profile role metadata:', error.message);
+      return {};
+    }
+
+    if (data) {
+      return data;
+    }
+  }
+
+  return {};
+};
+
+const hydrateUser = async (authUser) => {
+  if (!authUser) return null;
+
+  const profile = await getUserProfile(authUser);
+  const metadata = authUser.user_metadata || {};
+
+  let isAdminData = false;
+  let isSuperAdminData = false;
+
+  try {
+    const [adminResult, superAdminResult] = await Promise.all([
+      supabase.rpc('is_admin'),
+      supabase.rpc('is_super_admin'),
+    ]);
+
+    if (adminResult.error) {
+      console.warn('Unable to resolve admin access:', adminResult.error.message);
+    } else {
+      isAdminData = Boolean(adminResult.data);
+    }
+
+    if (superAdminResult.error) {
+      console.warn('Unable to resolve super-admin access:', superAdminResult.error.message);
+    } else {
+      isSuperAdminData = Boolean(superAdminResult.data);
+    }
+  } catch (error) {
+    console.warn('Admin access RPC lookup failed:', error?.message || error);
+  }
+
+  const adminAccess = getAdminAccess({
+    app_role: profile?.app_role || metadata.app_role || 'MEMBER',
+    access_level: profile?.access_level || metadata.access_level,
+    is_admin: isAdminData,
+    is_super_admin: isSuperAdminData,
+  });
+
+  return {
+    id: authUser.id,
+    email: authUser.email,
+    auth_user_id: profile?.auth_user_id || authUser.id,
+    ...metadata,
+    ...profile,
+    role: profile?.role || metadata.role || 'user',
+    app_role: profile?.app_role || metadata.app_role || 'MEMBER',
+    access_level: adminAccess.accessLevel,
+    is_admin: adminAccess.isAdmin,
+    is_super_admin: adminAccess.isSuperAdmin,
+    admin_access_level: adminAccess.accessLevel,
+    status: profile?.status || metadata.status || 'ACTIVE',
+  };
+};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -15,11 +93,8 @@ export const AuthProvider = ({ children }) => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
-        setUser({
-          id: session.user.id,
-          email: session.user.email,
-          ...session.user.user_metadata,
-        });
+        const hydratedUser = await hydrateUser(session.user);
+        setUser(hydratedUser);
         setIsAuthenticated(true);
         setAuthError(null);
       } else {
@@ -56,11 +131,8 @@ export const AuthProvider = ({ children }) => {
       if (error) throw error;
 
       if (session?.user) {
-        setUser({
-          id: session.user.id,
-          email: session.user.email,
-          ...session.user.user_metadata,
-        });
+        const hydratedUser = await hydrateUser(session.user);
+        setUser(hydratedUser);
         setIsAuthenticated(true);
         setAuthError(null);
       } else {

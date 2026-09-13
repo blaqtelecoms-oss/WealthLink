@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { base44 } from '@/lib/supabaseData';
 import PageHeader from '@/components/wealth/PageHeader';
 import BackButton from '@/components/wealth/BackButton';
 import MetricCard from '@/components/wealth/MetricCard';
@@ -135,7 +135,10 @@ export default function AdminMemberPortal() {
       </div>
 
       <section className="mt-8 rounded-2xl border border-white/10 bg-[#0b1525] p-5">
-        <h2 className="mb-4 font-semibold">Profile details</h2>
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h2 className="font-semibold text-white">Profile details</h2>
+          <span className="text-[10px] uppercase tracking-[0.18em] text-slate-500">Member snapshot</span>
+        </div>
         <div className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-3 lg:grid-cols-4">
           <Detail label="Member number" value={m.member_number || '—'} />
           <Detail label="Email" value={m.email || '—'} />

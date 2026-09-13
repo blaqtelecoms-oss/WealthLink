@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { base44 } from '@/lib/supabaseData';
 import { useAuth } from '@/lib/AuthContext';
 import { Image } from '@/components/ui/image';
 import { Button } from '@/components/ui/button';

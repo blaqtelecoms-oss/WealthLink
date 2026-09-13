@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { base44 } from '@/lib/supabaseData';
 import { useAuth } from '@/lib/AuthContext';
 import PageHeader from '@/components/wealth/PageHeader';
 import BackButton from '@/components/wealth/BackButton';

@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/AuthContext';
+import { getAdminAccess } from '@/lib/adminAccess';
 import { LayoutDashboard, TrendingUp, Network, WalletCards, UserRound, ShieldCheck, Settings2, Menu, X, LogOut, Bitcoin, RefreshCw } from 'lucide-react';
 import Logo from '@/components/wealth/Logo';
 import PullToRefresh from '@/components/wealth/PullToRefresh';
@@ -22,6 +23,12 @@ const sidebarNav = [
   { to: '/wallet', label: 'Rewards & wallet', icon: WalletCards },
   { to: '/coinbase', label: 'Crypto center', icon: Bitcoin },
   { to: '/profile', label: 'Profile & KYC', icon: UserRound },
+];
+
+const adminNav = [
+  { to: '/compliance', label: 'Compliance', icon: ShieldCheck },
+  { to: '/coinbase/admin', label: 'Coinbase admin', icon: Bitcoin },
+  { to: '/admin', label: 'Administration', icon: Settings2 },
 ];
 
 function matchTab(pathname) {
@@ -51,11 +58,17 @@ export default function AppShell() {
   const tabStacks = useRef({});
   const activeTab = matchTab(location.pathname);
 
-  const staff = user?.role === 'admin' || ['ADMIN','SUPER_ADMIN','FINANCE_ADMIN','COMPLIANCE_OFFICER','SUPPORT'].includes(user?.app_role);
-  const fullSidebarNav = [...sidebarNav, ...(staff ? [{to:'/compliance',label:'Compliance',icon:ShieldCheck},{to:'/coinbase/admin',label:'Coinbase admin',icon:Bitcoin},{to:'/admin',label:'Administration',icon:Settings2}] : [])];
+  const access = getAdminAccess({
+    app_role: user?.app_role,
+    access_level: user?.access_level,
+    is_admin: user?.is_admin,
+    is_super_admin: user?.is_super_admin,
+  });
+  const staff = access.isAdmin;
+  const fullSidebarNav = [...sidebarNav, ...(staff ? adminNav : [])];
   const extraNav = [
     {to:'/coinbase',label:'Crypto center',icon:Bitcoin},
-    ...(staff ? [{to:'/compliance',label:'Compliance',icon:ShieldCheck},{to:'/coinbase/admin',label:'Coinbase admin',icon:Bitcoin},{to:'/admin',label:'Administration',icon:Settings2}] : []),
+    ...(staff ? adminNav : []),
   ];
 
   const handleTabClick = (to) => {

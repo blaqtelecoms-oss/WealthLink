@@ -3,6 +3,142 @@
 
 create extension if not exists pgcrypto;
 
+create table if not exists public."AdminAllowlist" (
+  id uuid primary key default gen_random_uuid(),
+  auth_user_id uuid not null unique,
+  access_level text not null check (access_level in ('READ_ONLY_ADMIN', 'ADMIN', 'SUPER_ADMIN')),
+  is_active boolean not null default true,
+  expires_at timestamptz null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security invoker
+as $$
+  select exists (
+    select 1
+    from public."AdminAllowlist" a
+    where a.auth_user_id = auth.uid()
+      and a.is_active = true
+      and (a.expires_at is null or a.expires_at > now())
+  );
+$$;
+
+create or replace function public.is_super_admin()
+returns boolean
+language sql
+stable
+security invoker
+as $$
+  select exists (
+    select 1
+    from public."AdminAllowlist" a
+    where a.auth_user_id = auth.uid()
+      and a.access_level = 'SUPER_ADMIN'
+      and a.is_active = true
+      and (a.expires_at is null or a.expires_at > now())
+  );
+$$;
+
+alter table public."AdminAllowlist" enable row level security;
+
+create policy "super_admins_can_manage_admin_allowlist"
+on public."AdminAllowlist"
+for all
+to authenticated
+using ((select public.is_super_admin()))
+with check ((select public.is_super_admin()));
+
+insert into public."AdminAllowlist" (auth_user_id, access_level, is_active, expires_at, created_at, updated_at)
+values ('5b2796d3-d4b1-4d0a-b317-47bb69b5ca2e', 'ADMIN', true, null, now(), now())
+on conflict (auth_user_id)
+do update set
+  access_level = excluded.access_level,
+  is_active = excluded.is_active,
+  expires_at = excluded.expires_at,
+  updated_at = now();
+
+-- Admin dashboard tables: only active, valid admins can read or change operational data.
+create policy "admin_read_access_for_dashboard_tables"
+on "User"
+for select to authenticated using ((select public.is_admin()));
+
+create policy "admin_write_access_for_dashboard_tables"
+on "User"
+for update to authenticated using ((select public.is_admin())) with check ((select public.is_admin()));
+
+create policy "admin_read_access_for_investments"
+on "Investment"
+for select to authenticated using ((select public.is_admin()));
+
+create policy "admin_write_access_for_investments"
+on "Investment"
+for update to authenticated using ((select public.is_admin())) with check ((select public.is_admin()));
+
+create policy "admin_read_access_for_incentives"
+on "Incentive"
+for select to authenticated using ((select public.is_admin()));
+
+create policy "admin_write_access_for_incentives"
+on "Incentive"
+for update to authenticated using ((select public.is_admin())) with check ((select public.is_admin()));
+
+create policy "admin_read_access_for_compliance"
+on "ComplianceFlag"
+for select to authenticated using ((select public.is_admin()));
+
+create policy "admin_write_access_for_compliance"
+on "ComplianceFlag"
+for update to authenticated using ((select public.is_admin())) with check ((select public.is_admin()));
+
+create policy "admin_read_access_for_kyc"
+on "KYCSubmission"
+for select to authenticated using ((select public.is_admin()));
+
+create policy "admin_write_access_for_kyc"
+on "KYCSubmission"
+for update to authenticated using ((select public.is_admin())) with check ((select public.is_admin()));
+
+create policy "admin_read_access_for_coinbase"
+on "CoinbaseConfig"
+for select to authenticated using ((select public.is_admin()));
+
+create policy "admin_write_access_for_coinbase"
+on "CoinbaseConfig"
+for update to authenticated using ((select public.is_admin())) with check ((select public.is_admin()));
+
+create policy "admin_read_access_for_transactions"
+on "CoinbaseTransaction"
+for select to authenticated using ((select public.is_admin()));
+
+create policy "admin_write_access_for_transactions"
+on "CoinbaseTransaction"
+for update to authenticated using ((select public.is_admin())) with check ((select public.is_admin()));
+
+create policy "admin_read_access_for_wallet_admin"
+on "WalletTransaction"
+for select to authenticated using ((select public.is_admin()));
+
+create policy "admin_read_access_for_withdrawals"
+on "Withdrawal"
+for select to authenticated using ((select public.is_admin()));
+
+create policy "admin_write_access_for_withdrawals"
+on "Withdrawal"
+for update to authenticated using ((select public.is_admin())) with check ((select public.is_admin()));
+
+create policy "admin_read_access_for_bank_accounts"
+on "BankAccount"
+for select to authenticated using ((select public.is_admin()));
+
+create policy "admin_read_access_for_referrals"
+on "ReferralRelationship"
+for select to authenticated using ((select public.is_admin()));
+
 -- Standard columns used by Base44 entities.
 -- Every table gets an id + created_at + updated_at to match the app's entity behavior.
 
